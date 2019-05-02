@@ -5,60 +5,73 @@ from django.contrib.auth.models import BaseUserManager
 
 # Create your models here.
 
+
 class UserProfileManager(BaseUserManager):
-  """Helps Django work with our custom user model"""
+    """Helps Django work with our custom user model"""
 
-  def create_user(self, email, name, password):
-    """Creates new user profile object"""
+    def create_user(self, email, name, password):
+        """Creates new user profile object"""
 
-    if not email:
-      raise ValueError('Users must have a email address')
-    
-    email = self.normalize_email(email)
-    user = self.model(email=email, name=name)
+        if not email:
+            raise ValueError('Users must have a email address')
 
-    user.set_password(password)
-    user.save(using=self._db)
+        email = self.normalize_email(email)
+        user = self.model(email=email, name=name)
 
-    return user
+        user.set_password(password)
+        user.save(using=self._db)
 
-  def create_superuser(self, email, name, password):
-    """Creates a super user"""
+        return user
 
-    user = self.create_user(email=email, name=name, password=password)
+    def create_superuser(self, email, name, password):
+        """Creates a super user"""
 
-    user.is_superuser = True
-    user.is_staff = True
+        user = self.create_user(email=email, name=name, password=password)
 
-    user.save(using=self._db)
+        user.is_superuser = True
+        user.is_staff = True
 
-    return user
+        user.save(using=self._db)
+
+        return user
 
 
 class UserProfile(AbstractBaseUser, PermissionsMixin):
-  """Represents a "user Profile" inside our system"""
+    """Represents a "user Profile" inside our system"""
 
-  email = models.EmailField(max_length=255, unique=True)
-  name = models.CharField(max_length=255)
-  is_active = models.BooleanField(default=True)
-  is_staff = models.BooleanField(default=False)
+    email = models.EmailField(max_length=255, unique=True)
+    name = models.CharField(max_length=255)
+    is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=False)
 
-  objects = UserProfileManager()
+    objects = UserProfileManager()
 
-  USERNAME_FIELD = 'email'
-  REQUIRED_FIELDS = ['name']
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['name']
 
-  def get_full_name(self):
-    """Gets a users full name"""
+    def get_full_name(self):
+        """Gets a users full name"""
 
-    return self.name
+        return self.name
 
-  def get_short_name(self):
-    """Gets a users short name"""
+    def get_short_name(self):
+        """Gets a users short name"""
 
-    return self.name
+        return self.name
 
-  def __str__(self):
-    """Used by django to convert object to string"""
+    def __str__(self):
+        """Used by django to convert object to string"""
 
-    return self.email
+        return self.email
+
+
+class ProfileFeedItem(models.Model):
+    """Profile status update"""
+
+    user_profile = models.ForeignKey("UserProfile", on_delete=models.CASCADE)
+    status_text = models.CharField(max_length=255)
+    created_on = models.DateField(auto_now_add=True)
+
+    def __str__(self):
+        """Return the model as a string"""
+        return self.status_text
